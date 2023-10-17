@@ -1,6 +1,6 @@
 from links_to_photos import *
 
-def img_for_card(card_number: int):
+def img_for_card(card_number: int) -> str:
     match card_number:
         case 2:
             return link_to_2
@@ -23,5 +23,5 @@ def img_for_card(card_number: int):
         case 11:
             return link_to_11
         case _:
-            return None
+            return 'https://ibb.co/KsSSJdz'
 
