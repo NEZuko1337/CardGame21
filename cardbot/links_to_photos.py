@@ -18,4 +18,4 @@ link_to_9 = 'https://ibb.co/QdGV8By'
 
 link_to_10 = 'https://ibb.co/qYZSsYZ'
 
-link_to_11 = "https://ibb.co/c2pjcvj"
+link_to_11 = 'https://ibb.co/c2pjcvj'
