@@ -26,4 +26,17 @@ start_new_game = ReplyKeyboardMarkup(
     selective=True,
 )
 
+default_buttons = ReplyKeyboardMarkup(
+    keyboard=[
+        [
+            KeyboardButton(text="/startgame"),
+            KeyboardButton(text="/help")
+        ]
+    ],
+    resize_keyboard=True,
+    one_time_keyboard=True,
+    input_field_placeholder="Выбери действие из меню",
+    selective=True
+)
+
 rmk = ReplyKeyboardRemove()
