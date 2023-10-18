@@ -267,10 +267,12 @@ async def fourth_row(message:Message, state: FSMContext):
             for key, value in data.items():
                 if key == 'total_player':
                     total = value
-            #Доделать тут
+            #Доделать эту часть, переход на состояние 5 игры.
 
         else:
+            # Вроде как в этой части все доделал, нужно будет еще раз все проверить
             data = await state.get_data()
+            await message.answer("Ты решил закончить игру")
             player_total = 0
             zuko_total = 0
             zuko_other_cards = []
@@ -288,12 +290,111 @@ async def fourth_row(message:Message, state: FSMContext):
                 elif key == 'zuko_second_card':
                     zuko_second_card = value
 
-            print(f"player:{player_total}, zuko:{zuko_total}, zuko_cards_ater_2:{zuko_other_cards}, first_zuko_card:{zuko_first_card}, second_zuko_card:{zuko_second_card}")
-            # Доделать тут
-            
-            await message.answer("Ты решил закончить игру")
-            await state.clear()
+            # print(f"player:{player_total}, zuko:{zuko_total}, zuko_cards_ater_2:{zuko_other_cards}, first_zuko_card:{zuko_first_card}, second_zuko_card:{zuko_second_card}")
 
+            if zuko_total == player_total and (zuko_total<=21 and player_total<=21):
+                await message.answer(f"У нас с тобой ничья! Вот так да, сумма моих карт: {zuko_total}, сумма твоих карт: {player_total}", reply_markup=rmk)
+                await message.answer("Вот карты которые выпали мне:")
+                if zuko_other_cards is not []:
+                    try:
+                        await message.answer_photo(img_for_card(zuko_first_card))
+                        await message.answer_photo(img_for_card(zuko_second_card))
+                        for card in zuko_other_cards:
+                            await message.answer_photo(img_for_card(card))
+                    except TelegramBadRequest:
+                        await message.answer("Извини, фото не будет, произошел сбой, просто доверься питоновскому рандому")
+                
+                else:
+                    try:
+                        await message.answer_photo(img_for_card(zuko_first_card))
+                        await message.answer_photo(img_for_card(zuko_second_card))
+                    except TelegramBadRequest:
+                        await message.answer("Извини, фото не будет, произошел сбой, просто доверься питоновскому рандому")
+                await message.answer("Ты можешь начать игру заново /startgame", reply_markup=start_new_game)
+
+            if zuko_total>player_total:
+                if zuko_total <=21:
+                    await message.answer(f"Извини коненчо, но в этой игре победил я, сумма моих карт: {zuko_total}, сумма твоих карт: {player_total}", reply_markup=rmk)
+                    await message.answer("Вот карты которые выпали мне:")
+                    if zuko_other_cards is not []:
+                        try:
+                            await message.answer_photo(img_for_card(zuko_first_card))
+                            await message.answer_photo(img_for_card(zuko_second_card))
+                            for card in zuko_other_cards:
+                                await message.answer_photo(img_for_card(card))
+                        except TelegramBadRequest:
+                            await message.answer("Извини, фото не будет, произошел сбой, просто доверься питоновскому рандому")
+                    else:
+                        try:
+                            await message.answer_photo(img_for_card(zuko_first_card))
+                            await message.answer_photo(img_for_card(zuko_second_card))
+                        except TelegramBadRequest:
+                            await message.answer("Извини, фото не будет, произошел сбой, просто доверься питоновскому рандому")
+                            
+                    await message.answer("Ты можешь начать игру заново /startgame", reply_markup=start_new_game)
+                else:
+                    await message.answer(f"Поздравляю с победой, сумма моих карт: {zuko_total}, сумма твоих карт: {player_total}")
+                    await message.answer("Вот карты которые выпали мне:")
+                    if zuko_other_cards is not []:
+                        try:
+                            await message.answer_photo(img_for_card(zuko_first_card))
+                            await message.answer_photo(img_for_card(zuko_second_card))
+                            for card in zuko_other_cards:
+                                await message.answer_photo(img_for_card(card))
+                        except TelegramBadRequest:
+                            await message.answer("Извини, фото не будет, произошел сбой, просто доверься питоновскому рандому")
+                    else:
+                        try:
+                            await message.answer_photo(img_for_card(zuko_first_card))
+                            await message.answer_photo(img_for_card(zuko_second_card))
+                        except TelegramBadRequest:
+                            await message.answer("Извини, фото не будет, произошел сбой, просто доверься питоновскому рандому")
+
+                    await message.answer("Ты можешь начать игру заново, воспользуйся /startgame", reply_markup=start_new_game)
+
+            if zuko_total<player_total:
+                if player_total<=21:
+                    await message.answer(f"Поздравляю с победой, сумма моих карт составляет: {zuko_total}, а сумма твоих карт: {player_total}")
+                    await message.answer("Вот карты которые выпали мне:")
+                    if zuko_other_cards is not []:
+                        try:
+                            await message.answer_photo(img_for_card(zuko_first_card))
+                            await message.answer_photo(img_for_card(zuko_second_card))
+                            for card in zuko_other_cards:
+                                await message.answer_photo(img_for_card(card))
+                        except TelegramBadRequest:
+                            await message.answer("Извини, фото не будет, произошел сбой, просто доверься питоновскому рандому")
+                    else:
+                        try:
+                            await message.answer_photo(img_for_card(zuko_first_card))
+                            await message.answer_photo(img_for_card(zuko_second_card))
+                        except TelegramBadRequest:
+                            await message.answer("Извини, фото не будет, произошел сбой, просто доверься питоновскому рандому")
+                            
+                    await message.answer(f"Можешь начать новую игру через /startgame", reply_markup=start_new_game)
+                else:
+                    await message.answer(f"Извини коненчо, но в этой игре победил я, сумма моих карт: {zuko_total}, сумма твоих карт: {player_total}", reply_markup=rmk)
+                    await message.answer("Вот карты которые выпали мне:")
+                    if zuko_other_cards is not []:
+                        try:
+                            await message.answer_photo(img_for_card(zuko_first_card))
+                            await message.answer_photo(img_for_card(zuko_second_card))
+                            for card in zuko_other_cards:
+                                await message.answer_photo(img_for_card(card))
+                        except TelegramBadRequest:
+                            await message.answer("Извини, фото не будет, произошел сбой, просто доверься питоновскому рандому")
+                    else:
+                        try:
+                            await message.answer_photo(img_for_card(zuko_first_card))
+                            await message.answer_photo(img_for_card(zuko_second_card))
+                        except TelegramBadRequest:
+                            await message.answer("Извини, фото не будет, произошел сбой, просто доверься питоновскому рандому")
+                            
+                    await message.answer("Ты можешь начать игру заново /startgame", reply_markup=start_new_game)
+
+            await state.clear()
+    else:
+        await message.answer("Выбери пункт из меню")
             
 async def main():
     await bot.delete_webhook(drop_pending_updates=True)
