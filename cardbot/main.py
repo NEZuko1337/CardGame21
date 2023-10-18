@@ -8,7 +8,7 @@ from rules import(
 from aiogram.exceptions import TelegramBadRequest
 from  choose_img_to_card import img_for_card
 from links_to_photos import link_to_all_cards 
-from keyboards import choose_buttons, rmk, start_new_game
+from keyboards import choose_buttons, rmk, start_new_game, default_buttons
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command, CommandObject
 from aiogram.types import Message
@@ -24,7 +24,7 @@ dp = Dispatcher()
 
 @dp.message(Command("start"))
 async def command_start(message: Message):
-    await message.answer(f"Привет {message.from_user.first_name} , это бот в котором ты сможешь поиграть в игру '21', напиши /startgame, если хочешь сыграть, а если хочешь узнать правила, напиши /help")
+    await message.answer(f"Привет {message.from_user.first_name} , это бот в котором ты сможешь поиграть в игру '21', напиши /startgame, если хочешь сыграть, а если хочешь узнать правила, напиши /help", reply_markup=default_buttons)
 
 
 @dp.message(Command("help"))
@@ -46,6 +46,7 @@ class Game(StatesGroup):
     third_card = State()
     fourth_card = State()
     fifth_card = State()
+    sixth_card = State()
 
 
 @dp.message(Command("startgame"))
@@ -117,12 +118,18 @@ async def third_row(message: Message, state: FSMContext):
             total += th_card
             if total > 21:
                 await message.answer(f"Тебе выпала: {th_card}")
-                await message.answer_photo(third_photo_for_card)
-                await message.answer(f"Увы, но ты проиграл, твоя сумма карт {total} начни новую игру через /startgame", reply_markup=start_new_game)
+                try:
+                    await message.answer_photo(third_photo_for_card)
+                except TelegramBadRequest:
+                    await message.answer("Фото не будет, что-то пошло не так")
+                await message.answer(f"Увы, но ты проиграл, твоя сумма карт: {total}. Начни новую игру через /startgame", reply_markup=start_new_game)
                 await state.clear()
             else:
                 await message.answer(f"Тебе выпала: {th_card}")
-                await message.answer_photo(third_photo_for_card)
+                try:
+                    await message.answer_photo(third_photo_for_card)
+                except TelegramBadRequest:
+                    await message.answer("Фото не будет, что-то пошло не так")
 
                 await state.update_data(total_player=total)
                 await state.set_state(Game.fourth_card)
@@ -255,11 +262,6 @@ async def third_row(message: Message, state: FSMContext):
 
 @dp.message(Game.fourth_card)
 async def fourth_row(message:Message, state: FSMContext):
-    # total_player 8
-    # zuko_sum_card 25
-    # zuko_first_card 4
-    # zuko_second_card 4
-    # zuko_other_cards [11, 6]
     if message.text.lower() == "еще" or message.text.lower() == 'хватит':
         if message.text.lower() == "еще":
             data = await state.get_data()
@@ -267,7 +269,28 @@ async def fourth_row(message:Message, state: FSMContext):
             for key, value in data.items():
                 if key == 'total_player':
                     total = value
-            #Доделать эту часть, переход на состояние 5 игры.
+            player_fourth_card = random.randint(2,11)
+            photo_for_fourth_card = img_for_card(player_fourth_card)
+            total+=player_fourth_card
+            if total > 21:
+                await message.answer(f"Тебе выпала: {player_fourth_card}")
+                try:
+                    await message.answer_photo(photo_for_fourth_card)
+                except TelegramBadRequest:
+                    await message.answer("Фото не будет, что-то пошло не так")
+                await message.answer(f"Увы, но ты проиграл, твоя сумма карт: {total}. Начни новую игру через /startgame", reply_markup=start_new_game)
+                await state.clear()
+            else:
+                await message.answer(f"Тебе выпала: {player_fourth_card}")
+                try:
+                    await message.answer_photo(photo_for_fourth_card)
+                except TelegramBadRequest:
+                    await message.answer("Фото не будет, произошла ошибка!")
+
+                await state.update_data(total_player=total)
+                await state.set_state(Game.fifth_card)
+
+                await message.answer(f"Играем еще? Сумма твоих карт: {total}", reply_markup=choose_buttons)
 
         else:
             # Вроде как в этой части все доделал, нужно будет еще раз все проверить
@@ -289,9 +312,7 @@ async def fourth_row(message:Message, state: FSMContext):
                     zuko_first_card = value
                 elif key == 'zuko_second_card':
                     zuko_second_card = value
-
             # print(f"player:{player_total}, zuko:{zuko_total}, zuko_cards_ater_2:{zuko_other_cards}, first_zuko_card:{zuko_first_card}, second_zuko_card:{zuko_second_card}")
-
             if zuko_total == player_total and (zuko_total<=21 and player_total<=21):
                 await message.answer(f"У нас с тобой ничья! Вот так да, сумма моих карт: {zuko_total}, сумма твоих карт: {player_total}", reply_markup=rmk)
                 await message.answer("Вот карты которые выпали мне:")
@@ -395,6 +416,46 @@ async def fourth_row(message:Message, state: FSMContext):
             await state.clear()
     else:
         await message.answer("Выбери пункт из меню")
+
+
+@dp.message(Game.fifth_card)
+async def fifth_round(message: Message, state: FSMContext):
+    if message.text.lower() == 'еще' or message.text.lower() == 'хватит':
+        if message.text.lower() == 'еще':
+            data = await state.get_data()
+            total = 0
+            for key, value in data.items():
+                if key == 'total_player':
+                    total = value
+            player_fifth_card = random.randint(2,11)
+            photo_for_fifth_card = img_for_card(player_fifth_card)
+            total+=player_fifth_card
+            if total>21:
+                await message.answer(f"К сожалению ты проиграл, твоя сумма карт: {total}")
+                await message.answer(f"Тебе выпала: {player_fifth_card}")
+                try:
+                    await message.answer_photo(photo_for_fifth_card)
+                except TelegramBadRequest:
+                    await message.answer("Фото не будет, возникла ошибка!")
+            else:
+                await message.answer(f"Тебе выпала: {player_fifth_card}")
+                try:
+                    await message.answer_photo(photo_for_fifth_card)
+                except TelegramBadRequest:
+                    await message.answer("Фото не будет, произошла ошибка!")
+
+                await state.update_data(total_player=total)
+                await state.set_state(Game.sixth_card)
+
+                await message.answer(f"Играем еще? Сумма твоих карт: {total}", reply_markup=choose_buttons)
+        if message.text.lower() == 'хватит':
+            #TODO
+            await message.answer("Ты нажал хватит")
+
+            await state.clear()
+    else:
+        await message.answer("Выбери действие из меню")
+
             
 async def main():
     await bot.delete_webhook(drop_pending_updates=True)
