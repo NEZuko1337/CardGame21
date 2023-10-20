@@ -17,7 +17,6 @@ start_new_game = ReplyKeyboardMarkup(
     keyboard=[
         [
             KeyboardButton(text="/startgame"),
-            
         ],
     ],
     resize_keyboard=True,
